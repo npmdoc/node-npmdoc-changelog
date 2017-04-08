@@ -1,0 +1,253 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="http://github.com/dylang/changelog">changelog (v1.0.7)</a>
+</h1>
+<h4>Command line tool (and Node module) that generates a changelog in color output, markdown, or json for modules in npmjs.org's registry as well as any public github.com repo.</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.changelog">module changelog</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.generate">
+            function <span class="apidocSignatureSpan">changelog.</span>generate
+            <span class="apidocSignatureSpan">(project, versionRequested)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.markdown">
+            function <span class="apidocSignatureSpan">changelog.</span>markdown
+            <span class="apidocSignatureSpan">(data)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.terminal">
+            function <span class="apidocSignatureSpan">changelog.</span>terminal
+            <span class="apidocSignatureSpan">(data)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.changelog" id="apidoc.module.changelog">module changelog</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.generate" id="apidoc.element.changelog.generate">
+        function <span class="apidocSignatureSpan">changelog.</span>generate
+        <span class="apidocSignatureSpan">(project, versionRequested)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function generate(project, versionRequested) {
+
+if (!project) {
+    return new Error('Need help? --help or more help at https://github.com/dylang/changelog');
+}
+
+if (project.match(/github.com/)) {
+    var repo = project.match(/github\.com\/([^\/]*\/[^\/]*)/);
+    if (repo &amp;&amp; repo[1]) {
+        repo = repo[1].replace(/\.git$/, '');
+        log.debug('using github repo ' + repo);
+        return github.changelog(repo, versionRequested);
+    }
+
+    return new Error('Bad repo url: ' + project);
+}
+
+if (project.split('/').length === 2) {
+    log.debug('using github repo ' + project);
+    return github.changelog(project, versionRequested);
+}
+
+log.debug('using npm module ' + project);
+return npm.packageHistory(project)
+    .then(github.commitMessages)
+    .then(function(data) {
+        return processNpmAndGithubData(data, versionRequested);
+    });
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">...
+
+
+
+### Changelog API
+
+Changelog can be easily integrated into other tools.
+
+#### `changelog.<span class="apidocCodeKeywordSpan">generate</span>(name, versions)
+
+* `name` string, _required_ NPM module name from registry.
+* `versions` integer or semver, _optional_ Number of versions, or the semver version to show.
+
+
+````js
+var changelog = require('changelog');
+...</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.markdown" id="apidoc.element.changelog.markdown">
+        function <span class="apidocSignatureSpan">changelog.</span>markdown
+        <span class="apidocSignatureSpan">(data)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function markdown(data) {
+    var output = [];
+
+    data.versions.map(function(version, i){
+        if (version.changes) {
+            var date = version.date;
+            var versionString = (version.version ? version.version + ' / ' : '') +
+                    moment(date).format("YYYY-MM-DD");
+
+            // add a blank line between sections
+            if (i &gt; 0) {
+                output.push('');
+            }
+
+            output.push(versionString);
+            output.push(new Array(versionString.length + 1).join('='));
+            output.push('');
+
+            var uniqueChanges = {};
+            version.changes.forEach(function(change){
+                if (!uniqueChanges[change.message]) {
+                    var message = change.message;
+                    if (data.project &amp;&amp; data.project.github) {
+                        message = message.replace(/#([0-9]+)/g, '[#$1](https://github.com/' + data.project.github + '/issues/$1' + ')');
+                    }
+                    output.push(bullet(message, '*', true));
+                }
+                uniqueChanges[change.message] = true;
+            });
+        }
+    });
+
+    return output.join('\n');
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.terminal" id="apidoc.element.changelog.terminal">
+        function <span class="apidocSignatureSpan">changelog.</span>terminal
+        <span class="apidocSignatureSpan">(data)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function terminal(data) {
+
+    var output = [];
+
+    data.versions.map(function(version, i){
+
+
+        var date = version.date;
+        var versionString = (version.version ? version.version + ' / ' : '') +
+                moment(date).format("YYYY-MM-DD");
+
+        // add a blank line between sections
+        if (i &gt; 0) {
+            output.push('');
+        }
+
+        output.push(chalk.yellow(versionString));
+
+
+        if (!version.changes) {
+            return output.push(bullet('Changelog not found.'));
+        }
+
+
+        var uniqueChanges = {};
+        version.changes.forEach(function(change){
+            if (!uniqueChanges[change.message]) {
+                var message = change.message
+                    .replace(/([^`]*)`([^`]*)`([^`]*)/g, '$1' + chalk.green('$2') + '$3')
+                    .replace(/#([0-9]+)/g, chalk.blue.underline('https://github.com/' + data.project.github + '/issues/$1'))
+                    .replace(/^(\[[^\]]*\])/, chalk.cyan('$1'));
+                output.push(bullet(message));
+            }
+            uniqueChanges[change.message] = true;
+        });
+    });
+
+    return output.join('\n');
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
