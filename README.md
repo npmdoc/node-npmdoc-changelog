@@ -1,9 +1,14 @@
-# api documentation for  [changelog (v1.0.7)](http://github.com/dylang/changelog)  [![npm package](https://img.shields.io/npm/v/npmdoc-changelog.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-changelog) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-changelog.svg)](https://travis-ci.org/npmdoc/node-npmdoc-changelog)
+# npmdoc-changelog
+
+#### api documentation for  [changelog (v1.0.7)](http://github.com/dylang/changelog)  [![npm package](https://img.shields.io/npm/v/npmdoc-changelog.svg?style=flat-square)](https://www.npmjs.org/package/npmdoc-changelog) [![travis-ci.org build-status](https://api.travis-ci.org/npmdoc/node-npmdoc-changelog.svg)](https://travis-ci.org/npmdoc/node-npmdoc-changelog)
+
 #### Command line tool (and Node module) that generates a changelog in color output, markdown, or json for modules in npmjs.org's registry as well as any public github.com repo.
 
-[![NPM](https://nodei.co/npm/changelog.png?downloads=true)](https://www.npmjs.com/package/changelog)
+[![NPM](https://nodei.co/npm/changelog.png?downloads=true&downloadRank=true&stars=true)](https://www.npmjs.com/package/changelog)
 
-[![apidoc](https://npmdoc.github.io/node-npmdoc-changelog/build/screenCapture.buildNpmdoc.browser.%252Fhome%252Ftravis%252Fbuild%252Fnpmdoc%252Fnode-npmdoc-changelog%252Ftmp%252Fbuild%252Fapidoc.html.png)](https://npmdoc.github.io/node-npmdoc-changelog/build/apidoc.html)
+- [https://npmdoc.github.io/node-npmdoc-changelog/build/apidoc.html](https://npmdoc.github.io/node-npmdoc-changelog/build/apidoc.html)
+
+[![apidoc](https://npmdoc.github.io/node-npmdoc-changelog/build/screenCapture.buildCi.browser.%252Ftmp%252Fbuild%252Fapidoc.html.png)](https://npmdoc.github.io/node-npmdoc-changelog/build/apidoc.html)
 
 ![npmPackageListing](https://npmdoc.github.io/node-npmdoc-changelog/build/screenCapture.npmPackageListing.svg)
 
@@ -17,8 +22,7 @@
 
 {
     "author": {
-        "name": "Dylan Greene",
-        "email": "dylang@gmail.com"
+        "name": "Dylan Greene"
     },
     "bin": {
         "changelog": "./bin/changelog.js"
@@ -84,14 +88,12 @@
     "main": "lib/changelog",
     "maintainers": [
         {
-            "name": "dylang",
-            "email": "dylang@gmail.com"
+            "name": "dylang"
         }
     ],
     "name": "changelog",
     "optionalDependencies": {},
     "preferGlobal": true,
-    "readme": "ERROR: No README data found!",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/dylang/changelog.git"
@@ -101,164 +103,6 @@
     },
     "version": "1.0.7"
 }
-```
-
-
-
-# <a name="apidoc.tableOfContents"></a>[table of contents](#apidoc.tableOfContents)
-
-#### [module changelog](#apidoc.module.changelog)
-1.  [function <span class="apidocSignatureSpan">changelog.</span>generate (project, versionRequested)](#apidoc.element.changelog.generate)
-1.  [function <span class="apidocSignatureSpan">changelog.</span>markdown (data)](#apidoc.element.changelog.markdown)
-1.  [function <span class="apidocSignatureSpan">changelog.</span>terminal (data)](#apidoc.element.changelog.terminal)
-
-
-
-# <a name="apidoc.module.changelog"></a>[module changelog](#apidoc.module.changelog)
-
-#### <a name="apidoc.element.changelog.generate"></a>[function <span class="apidocSignatureSpan">changelog.</span>generate (project, versionRequested)](#apidoc.element.changelog.generate)
-- description and source-code
-```javascript
-function generate(project, versionRequested) {
-
-if (!project) {
-    return new Error('Need help? --help or more help at https://github.com/dylang/changelog');
-}
-
-if (project.match(/github.com/)) {
-    var repo = project.match(/github\.com\/([^\/]*\/[^\/]*)/);
-    if (repo && repo[1]) {
-        repo = repo[1].replace(/\.git$/, '');
-        log.debug('using github repo ' + repo);
-        return github.changelog(repo, versionRequested);
-    }
-
-    return new Error('Bad repo url: ' + project);
-}
-
-if (project.split('/').length === 2) {
-    log.debug('using github repo ' + project);
-    return github.changelog(project, versionRequested);
-}
-
-log.debug('using npm module ' + project);
-return npm.packageHistory(project)
-    .then(github.commitMessages)
-    .then(function(data) {
-        return processNpmAndGithubData(data, versionRequested);
-    });
-}
-```
-- example usage
-```shell
-...
-
-
-
-### Changelog API
-
-Changelog can be easily integrated into other tools.
-
-#### 'changelog.generate(name, versions)
-
-* 'name' string, _required_ NPM module name from registry.
-* 'versions' integer or semver, _optional_ Number of versions, or the semver version to show.
-
-
-''''js
-var changelog = require('changelog');
-...
-```
-
-#### <a name="apidoc.element.changelog.markdown"></a>[function <span class="apidocSignatureSpan">changelog.</span>markdown (data)](#apidoc.element.changelog.markdown)
-- description and source-code
-```javascript
-function markdown(data) {
-    var output = [];
-
-    data.versions.map(function(version, i){
-        if (version.changes) {
-            var date = version.date;
-            var versionString = (version.version ? version.version + ' / ' : '') +
-                    moment(date).format("YYYY-MM-DD");
-
-            // add a blank line between sections
-            if (i > 0) {
-                output.push('');
-            }
-
-            output.push(versionString);
-            output.push(new Array(versionString.length + 1).join('='));
-            output.push('');
-
-            var uniqueChanges = {};
-            version.changes.forEach(function(change){
-                if (!uniqueChanges[change.message]) {
-                    var message = change.message;
-                    if (data.project && data.project.github) {
-                        message = message.replace(/#([0-9]+)/g, '[#$1](https://github.com/' + data.project.github + '/issues/$1' + ')');
-                    }
-                    output.push(bullet(message, '*', true));
-                }
-                uniqueChanges[change.message] = true;
-            });
-        }
-    });
-
-    return output.join('\n');
-}
-```
-- example usage
-```shell
-n/a
-```
-
-#### <a name="apidoc.element.changelog.terminal"></a>[function <span class="apidocSignatureSpan">changelog.</span>terminal (data)](#apidoc.element.changelog.terminal)
-- description and source-code
-```javascript
-function terminal(data) {
-
-    var output = [];
-
-    data.versions.map(function(version, i){
-
-
-        var date = version.date;
-        var versionString = (version.version ? version.version + ' / ' : '') +
-                moment(date).format("YYYY-MM-DD");
-
-        // add a blank line between sections
-        if (i > 0) {
-            output.push('');
-        }
-
-        output.push(chalk.yellow(versionString));
-
-
-        if (!version.changes) {
-            return output.push(bullet('Changelog not found.'));
-        }
-
-
-        var uniqueChanges = {};
-        version.changes.forEach(function(change){
-            if (!uniqueChanges[change.message]) {
-                var message = change.message
-                    .replace(/([^']*)'([^']*)'([^']*)/g, '$1' + chalk.green('$2') + '$3')
-                    .replace(/#([0-9]+)/g, chalk.blue.underline('https://github.com/' + data.project.github + '/issues/$1'))
-                    .replace(/^(\[[^\]]*\])/, chalk.cyan('$1'));
-                output.push(bullet(message));
-            }
-            uniqueChanges[change.message] = true;
-        });
-    });
-
-    return output.join('\n');
-}
-```
-- example usage
-```shell
-n/a
 ```
 
 
