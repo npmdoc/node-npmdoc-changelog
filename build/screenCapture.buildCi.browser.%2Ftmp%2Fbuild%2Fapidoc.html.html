@@ -1,4 +1,4 @@
-<div class="apidocDiv">
+<html><head></head><body><div class="apidocDiv">
 <style>
 /*csslint
 */
@@ -47,17 +47,10 @@
 }
 </style>
 <h1>api documentation for
-    <a
-
-        href="http://github.com/dylang/changelog"
-
-    >changelog (v1.0.7)</a>
+    <a href="http://github.com/dylang/changelog">changelog (v1.0.7)</a>
 </h1>
 <h4>Command line tool (and Node module) that generates a changelog in color output, markdown, or json for modules in npmjs.org's registry as well as any public github.com repo.</h4>
-<div class="apidocSectionDiv"><a
-    href="#apidoc.tableOfContents"
-    id="apidoc.tableOfContents"
-><h1>table of contents</h1></a><ol>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
 
     <li class="apidocModuleLi"><a href="#apidoc.module.changelog">module changelog</a><ol>
 
@@ -153,26 +146,26 @@
     <li>description and source-code<pre class="apidocCodePre">function generate(project, versionRequested) {
 
 if (!project) {
-    return new Error(&#x27;Need help? --help or more help at https://github.com/dylang/changelog&#x27;);
+    return new Error('Need help? --help or more help at https://github.com/dylang/changelog');
 }
 
 if (project.match(/github.com/)) {
     var repo = project.match(/github\.com\/([^\/]*\/[^\/]*)/);
-    if (repo &#x26;&#x26; repo[1]) {
-        repo = repo[1].replace(/\.git$/, &#x27;&#x27;);
-        log.debug(&#x27;using github repo &#x27; + repo);
+    if (repo &amp;&amp; repo[1]) {
+        repo = repo[1].replace(/\.git$/, '');
+        log.debug('using github repo ' + repo);
         return github.changelog(repo, versionRequested);
     }
 
-    return new Error(&#x27;Bad repo url: &#x27; + project);
+    return new Error('Bad repo url: ' + project);
 }
 
-if (project.split(&#x27;/&#x27;).length === 2) {
-    log.debug(&#x27;using github repo &#x27; + project);
+if (project.split('/').length === 2) {
+    log.debug('using github repo ' + project);
     return github.changelog(project, versionRequested);
 }
 
-log.debug(&#x27;using npm module &#x27; + project);
+log.debug('using npm module ' + project);
 return npm.packageHistory(project)
     .then(github.commitMessages)
     .then(function(data) {
@@ -194,7 +187,7 @@ Changelog can be easily integrated into other tools.
 
 
 ````js
-var changelog = require(&#x27;changelog&#x27;);
+var changelog = require('changelog');
 ...</pre></li>
     </ul>
 
@@ -213,33 +206,33 @@ var changelog = require(&#x27;changelog&#x27;);
     data.versions.map(function(version, i){
         if (version.changes) {
             var date = version.date;
-            var versionString = (version.version ? version.version + &#x27; / &#x27; : &#x27;&#x27;) +
-                    moment(date).format(&#x22;YYYY-MM-DD&#x22;);
+            var versionString = (version.version ? version.version + ' / ' : '') +
+                    moment(date).format("YYYY-MM-DD");
 
             // add a blank line between sections
-            if (i &#x3e; 0) {
-                output.push(&#x27;&#x27;);
+            if (i &gt; 0) {
+                output.push('');
             }
 
             output.push(versionString);
-            output.push(new Array(versionString.length + 1).join(&#x27;=&#x27;));
-            output.push(&#x27;&#x27;);
+            output.push(new Array(versionString.length + 1).join('='));
+            output.push('');
 
             var uniqueChanges = {};
             version.changes.forEach(function(change){
                 if (!uniqueChanges[change.message]) {
                     var message = change.message;
-                    if (data.project &#x26;&#x26; data.project.github) {
-                        message = message.replace(/#([0-9]+)/g, &#x27;[#$1](https://github.com/&#x27; + data.project.github + &#x27;/issues/$1&#x27; + &#x27;)&#x27;);
+                    if (data.project &amp;&amp; data.project.github) {
+                        message = message.replace(/#([0-9]+)/g, '[#$1](https://github.com/' + data.project.github + '/issues/$1' + ')');
                     }
-                    output.push(bullet(message, &#x27;*&#x27;, true));
+                    output.push(bullet(message, '*', true));
                 }
                 uniqueChanges[change.message] = true;
             });
         }
     });
 
-    return output.join(&#x27;\n&#x27;);
+    return output.join('\n');
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">n/a</pre></li>
     </ul>
@@ -261,19 +254,19 @@ var changelog = require(&#x27;changelog&#x27;);
 
 
         var date = version.date;
-        var versionString = (version.version ? version.version + &#x27; / &#x27; : &#x27;&#x27;) +
-                moment(date).format(&#x22;YYYY-MM-DD&#x22;);
+        var versionString = (version.version ? version.version + ' / ' : '') +
+                moment(date).format("YYYY-MM-DD");
 
         // add a blank line between sections
-        if (i &#x3e; 0) {
-            output.push(&#x27;&#x27;);
+        if (i &gt; 0) {
+            output.push('');
         }
 
         output.push(chalk.yellow(versionString));
 
 
         if (!version.changes) {
-            return output.push(bullet(&#x27;Changelog not found.&#x27;));
+            return output.push(bullet('Changelog not found.'));
         }
 
 
@@ -281,16 +274,16 @@ var changelog = require(&#x27;changelog&#x27;);
         version.changes.forEach(function(change){
             if (!uniqueChanges[change.message]) {
                 var message = change.message
-                    .replace(/([^`]*)`([^`]*)`([^`]*)/g, &#x27;$1&#x27; + chalk.green(&#x27;$2&#x27;) + &#x27;$3&#x27;)
-                    .replace(/#([0-9]+)/g, chalk.blue.underline(&#x27;https://github.com/&#x27; + data.project.github + &#x27;/issues/$1&#x27;))
-                    .replace(/^(\[[^\]]*\])/, chalk.cyan(&#x27;$1&#x27;));
+                    .replace(/([^`]*)`([^`]*)`([^`]*)/g, '$1' + chalk.green('$2') + '$3')
+                    .replace(/#([0-9]+)/g, chalk.blue.underline('https://github.com/' + data.project.github + '/issues/$1'))
+                    .replace(/^(\[[^\]]*\])/, chalk.cyan('$1'));
                 output.push(bullet(message));
             }
             uniqueChanges[change.message] = true;
         });
     });
 
-    return output.join(&#x27;\n&#x27;);
+    return output.join('\n');
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">n/a</pre></li>
     </ul>
@@ -321,11 +314,11 @@ var changelog = require(&#x27;changelog&#x27;);
             var versionsArray = [];
             var versionsCache = {};
 
-            if (data &#x26;&#x26; data.changes) {
+            if (data &amp;&amp; data.changes) {
                 data.changes.forEach(function(change){
                     if (change) {
                         var date = change.date;
-                        var simpleDate = moment(date).format(&#x22;YYYY-MM-DD&#x22;);
+                        var simpleDate = moment(date).format("YYYY-MM-DD");
                         versionsCache[simpleDate] = versionsCache[simpleDate] || { date: new Date(simpleDate), changes: [] };
                         versionsCache[simpleDate].changes.push(change);
                     }
@@ -342,21 +335,21 @@ var changelog = require(&#x27;changelog&#x27;);
                 var i;
 
                 // All == all versions
-                if (releaseRequested.toString().toLowerCase() === &#x27;all&#x27;) {
+                if (releaseRequested.toString().toLowerCase() === 'all') {
                     tmpVersions = versionsArray;
                 }
                 // Latest == Latest single version
-                else if (releaseRequested.toString().toLowerCase() === &#x27;latest&#x27;) {
+                else if (releaseRequested.toString().toLowerCase() === 'latest') {
                     tmpVersions.push(versionsArray[0]);
                 // Integer == that many versions.  1 = one version.
                 } else if (parseInt(releaseRequested, 10) === releaseRequested) {
-                      for (i = 0; i &#x3c; Math.min(releaseRequested, versionsArray.length - 1); i++) {
+                      for (i = 0; i &lt; Math.min(releaseRequested, versionsArray.length - 1); i++) {
                             tmpVersions.push(versionsArray[i]);
                         }
                 // Require valid version
                 } else {
-                    throw new Error(&#x27;Github\&#x27;s API does not yet support release versions. See https://github.com/github/developer
-.github.com/issues/17 for more info.&#x27;);
+                    throw new Error('Github\'s API does not yet support release versions. See https://github.com/github/developer
+.github.com/issues/17 for more info.');
                 }
                 versionsArray = tmpVersions;
             }
@@ -383,28 +376,28 @@ var changelog = require(&#x27;changelog&#x27;);
     var deferred = q.defer();
 
     // TODO: better argument check and url fix, or just use npm project name
-    var repoURL = URL.parse(options.repo.replace(/\.git$/, &#x27;&#x27;));
+    var repoURL = URL.parse(options.repo.replace(/\.git$/, ''));
     var project = repoURL.pathname;
 
     if (!project) {
-        deferred.reject(new Error(&#x27;that\&#x27;s no github url i know of&#x27;));
+        deferred.reject(new Error('that\'s no github url i know of'));
     }
 
-    // remove leading /&#x27;s
-    project = project.replace(/^\//g, &#x27;&#x27;);
+    // remove leading /'s
+    project = project.replace(/^\//g, '');
 
-    var url = &#x27;https://api.github.com/repos/&#x27; + project + &#x27;/commits?per_page=250&#x27;;
-    log.debug(&#x27;requesting: &#x27; + url);
+    var url = 'https://api.github.com/repos/' + project + '/commits?per_page=250';
+    log.debug('requesting: ' + url);
 
-    request({uri: url, json: true, headers: {&#x27;User-Agent&#x27;: userAgent}}, function (err, res, data) {
-        log.debug(&#x27;complete: &#x27; + url);
+    request({uri: url, json: true, headers: {'User-Agent': userAgent}}, function (err, res, data) {
+        log.debug('complete: ' + url);
 
         if (err) {
             return deferred.reject(err);
         }
 
         if (!data.map) {
-            return deferred.reject(&#x27;Unknown Github Repo: &#x27; + options.repo + &#x27;. &#x27; + (data.message || JSON.stringify(data)));
+            return deferred.reject('Unknown Github Repo: ' + options.repo + '. ' + (data.message || JSON.stringify(data)));
         }
 
         var changes = data.map(function(change){
@@ -419,7 +412,7 @@ var changelog = require(&#x27;changelog&#x27;);
         deferred.resolve({
             project: {
                 github:     project,
-                repository: &#x27;https://github.com/&#x27; + project
+                repository: 'https://github.com/' + project
             },
             changes: changes,
             versions: options.versions
@@ -446,27 +439,27 @@ var changelog = require(&#x27;changelog&#x27;);
     <ul>
     <li>description and source-code<pre class="apidocCodePre">function packageHistory(moduleName) {
     var deferred = q.defer();
-    var url = &#x27;http://registry.npmjs.org/&#x27; + moduleName;
-    log.debug(&#x27;requesting: &#x27; + url);
+    var url = 'http://registry.npmjs.org/' + moduleName;
+    log.debug('requesting: ' + url);
 
     request({ uri: url, json: true }, function (err, res, data) {
-        log.debug(&#x27;complete: &#x27; + url);
+        log.debug('complete: ' + url);
 
         if (err) {
             return deferred.reject(new Error(err));
         }
 
         if (!data) {
-            return deferred.reject(&#x27;No data for &#x27; + url);
+            return deferred.reject('No data for ' + url);
         }
 
-        if (data.error === &#x27;not_found&#x27;) {
-            return deferred.reject(&#x27;Npm module &#x27; + moduleName + &#x27; was not found.&#x27;);
+        if (data.error === 'not_found') {
+            return deferred.reject('Npm module ' + moduleName + ' was not found.');
         }
 
         var repo = findRepoUrl(data);
 
-        if (!repo &#x26;&#x26; data.versions) {
+        if (!repo &amp;&amp; data.versions) {
             Object.keys(data.versions).forEach(function(version) {
                 if (!repo) {
                     repo = findRepoUrl(data.versions[version]);
@@ -477,19 +470,19 @@ var changelog = require(&#x27;changelog&#x27;);
         if (!repo) {
             var author;
             if (data.author) {
-                author = data.author.name || &#x27;Creator of Module&#x27;;
+                author = data.author.name || 'Creator of Module';
 
                 if (data.author.email || data.author.url) {
-                    author = author + &#x27; (&#x27; + (data.author.email || data.author.url) + &#x27;)&#x27;;
+                    author = author + ' (' + (data.author.email || data.author.url) + ')';
                 }
             }
 
-            return deferred.reject((author ? author : &#x27;Owner of module &#x27;) + &#x27; did not specify the repository url in the package.
-json for &#x27; + moduleName + &#x27;. You should let the author know.&#x27;);
+            return deferred.reject((author ? author : 'Owner of module ') + ' did not specify the repository url in the package.
+json for ' + moduleName + '. You should let the author know.');
         }
 
         if (!data.time) {
-            return deferred.reject(&#x27;No published versions for &#x27; + moduleName);
+            return deferred.reject('No published versions for ' + moduleName);
         }
 
         var time = data.time;
@@ -530,3 +523,4 @@ json for &#x27; + moduleName + &#x27;. You should let the author know.&#x27;);
     ]
 </div>
 </div>
+</body></html>

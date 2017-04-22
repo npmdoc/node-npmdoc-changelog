@@ -88,6 +88,53 @@
 
         </li>
 
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">changelog.</span>github</span>
+
+        </li>
+
+        <li>
+
+            <span class="apidocSignatureSpan">object <span class="apidocSignatureSpan">changelog.</span>npm</span>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.changelog.github">module changelog.github</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.github.changelog">
+            function <span class="apidocSignatureSpan">changelog.github.</span>changelog
+            <span class="apidocSignatureSpan">(repo, releaseRequested)</span>
+            </a>
+
+        </li>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.github.commitMessages">
+            function <span class="apidocSignatureSpan">changelog.github.</span>commitMessages
+            <span class="apidocSignatureSpan">(options)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.changelog.npm">module changelog.npm</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.changelog.npm.packageHistory">
+            function <span class="apidocSignatureSpan">changelog.npm.</span>packageHistory
+            <span class="apidocSignatureSpan">(moduleName)</span>
+            </a>
+
+        </li>
+
     </ol></li>
 
 </ol></div>
@@ -244,6 +291,232 @@ var changelog = require(&#x27;changelog&#x27;);
     });
 
     return output.join(&#x27;\n&#x27;);
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.changelog.github" id="apidoc.module.changelog.github">module changelog.github</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.github.changelog" id="apidoc.element.changelog.github.changelog">
+        function <span class="apidocSignatureSpan">changelog.github.</span>changelog
+        <span class="apidocSignatureSpan">(repo, releaseRequested)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function changelog(repo, releaseRequested) {
+    return commitMessages({repo: repo})
+        .then(function(data) {
+
+
+            var versionsArray = [];
+            var versionsCache = {};
+
+            if (data &#x26;&#x26; data.changes) {
+                data.changes.forEach(function(change){
+                    if (change) {
+                        var date = change.date;
+                        var simpleDate = moment(date).format(&#x22;YYYY-MM-DD&#x22;);
+                        versionsCache[simpleDate] = versionsCache[simpleDate] || { date: new Date(simpleDate), changes: [] };
+                        versionsCache[simpleDate].changes.push(change);
+                    }
+                });
+            }
+
+            Object.keys(versionsCache).forEach(function(simpleDate) {
+                versionsArray.push(versionsCache[simpleDate]);
+            });
+
+            // THIS SHOULD GO AWAY
+            if (releaseRequested) {
+                var tmpVersions = [];
+                var i;
+
+                // All == all versions
+                if (releaseRequested.toString().toLowerCase() === &#x27;all&#x27;) {
+                    tmpVersions = versionsArray;
+                }
+                // Latest == Latest single version
+                else if (releaseRequested.toString().toLowerCase() === &#x27;latest&#x27;) {
+                    tmpVersions.push(versionsArray[0]);
+                // Integer == that many versions.  1 = one version.
+                } else if (parseInt(releaseRequested, 10) === releaseRequested) {
+                      for (i = 0; i &#x3c; Math.min(releaseRequested, versionsArray.length - 1); i++) {
+                            tmpVersions.push(versionsArray[i]);
+                        }
+                // Require valid version
+                } else {
+                    throw new Error(&#x27;Github\&#x27;s API does not yet support release versions. See https://github.com/github/developer
+.github.com/issues/17 for more info.&#x27;);
+                }
+                versionsArray = tmpVersions;
+            }
+
+            return{
+                project:    data.project,
+                versions:   versionsArray
+            };
+        });
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.github.commitMessages" id="apidoc.element.changelog.github.commitMessages">
+        function <span class="apidocSignatureSpan">changelog.github.</span>commitMessages
+        <span class="apidocSignatureSpan">(options)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function commitMessages(options) {
+    var deferred = q.defer();
+
+    // TODO: better argument check and url fix, or just use npm project name
+    var repoURL = URL.parse(options.repo.replace(/\.git$/, &#x27;&#x27;));
+    var project = repoURL.pathname;
+
+    if (!project) {
+        deferred.reject(new Error(&#x27;that\&#x27;s no github url i know of&#x27;));
+    }
+
+    // remove leading /&#x27;s
+    project = project.replace(/^\//g, &#x27;&#x27;);
+
+    var url = &#x27;https://api.github.com/repos/&#x27; + project + &#x27;/commits?per_page=250&#x27;;
+    log.debug(&#x27;requesting: &#x27; + url);
+
+    request({uri: url, json: true, headers: {&#x27;User-Agent&#x27;: userAgent}}, function (err, res, data) {
+        log.debug(&#x27;complete: &#x27; + url);
+
+        if (err) {
+            return deferred.reject(err);
+        }
+
+        if (!data.map) {
+            return deferred.reject(&#x27;Unknown Github Repo: &#x27; + options.repo + &#x27;. &#x27; + (data.message || JSON.stringify(data)));
+        }
+
+        var changes = data.map(function(change){
+            var date = new Date(change.commit.committer.date);
+            var message = change.commit.message;
+            return {
+                date:       date,
+                message:    message
+            };
+        });
+
+        deferred.resolve({
+            project: {
+                github:     project,
+                repository: &#x27;https://github.com/&#x27; + project
+            },
+            changes: changes,
+            versions: options.versions
+        });
+    });
+    return deferred.promise;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.changelog.npm" id="apidoc.module.changelog.npm">module changelog.npm</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.changelog.npm.packageHistory" id="apidoc.element.changelog.npm.packageHistory">
+        function <span class="apidocSignatureSpan">changelog.npm.</span>packageHistory
+        <span class="apidocSignatureSpan">(moduleName)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function packageHistory(moduleName) {
+    var deferred = q.defer();
+    var url = &#x27;http://registry.npmjs.org/&#x27; + moduleName;
+    log.debug(&#x27;requesting: &#x27; + url);
+
+    request({ uri: url, json: true }, function (err, res, data) {
+        log.debug(&#x27;complete: &#x27; + url);
+
+        if (err) {
+            return deferred.reject(new Error(err));
+        }
+
+        if (!data) {
+            return deferred.reject(&#x27;No data for &#x27; + url);
+        }
+
+        if (data.error === &#x27;not_found&#x27;) {
+            return deferred.reject(&#x27;Npm module &#x27; + moduleName + &#x27; was not found.&#x27;);
+        }
+
+        var repo = findRepoUrl(data);
+
+        if (!repo &#x26;&#x26; data.versions) {
+            Object.keys(data.versions).forEach(function(version) {
+                if (!repo) {
+                    repo = findRepoUrl(data.versions[version]);
+                }
+            });
+        }
+
+        if (!repo) {
+            var author;
+            if (data.author) {
+                author = data.author.name || &#x27;Creator of Module&#x27;;
+
+                if (data.author.email || data.author.url) {
+                    author = author + &#x27; (&#x27; + (data.author.email || data.author.url) + &#x27;)&#x27;;
+                }
+            }
+
+            return deferred.reject((author ? author : &#x27;Owner of module &#x27;) + &#x27; did not specify the repository url in the package.
+json for &#x27; + moduleName + &#x27;. You should let the author know.&#x27;);
+        }
+
+        if (!data.time) {
+            return deferred.reject(&#x27;No published versions for &#x27; + moduleName);
+        }
+
+        var time = data.time;
+        delete time.created;
+        delete time.modified;
+
+        var versions = Object.keys(time)
+            .map(function(version){
+                if (semver.valid(version)) {
+                    return {
+                        version: version,
+                        date: new Date(time[version])
+                    };
+                }
+            });
+
+        versions = _.compact(versions)
+            .sort(sortDate);
+
+
+        deferred.resolve({
+            repo: repo,
+            versions: versions
+        });
+    });
+
+    return deferred.promise;
 }</pre></li>
     <li>example usage<pre class="apidocCodePre">n/a</pre></li>
     </ul>
